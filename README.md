@@ -29,7 +29,7 @@ brew install suzutan/tap/sdcd
 ### Go install
 
 ```sh
-go install github.com/suzutan/sdcd-cli@latest
+go install github.com/suzutan/sdcd-cli/cmd/sdcd@latest
 ```
 
 ### Download binary

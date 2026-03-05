@@ -9,10 +9,10 @@ LDFLAGS := -X github.com/suzutan/sdcd-cli/cmd.Version=$(VERSION) \
 .PHONY: build test lint clean install
 
 build:
-	go build -ldflags "$(LDFLAGS)" -o bin/sdcd .
+	go build -ldflags "$(LDFLAGS)" -o bin/sdcd ./cmd/sdcd
 
 install:
-	go install -ldflags "$(LDFLAGS)" .
+	go install -ldflags "$(LDFLAGS)" ./cmd/sdcd
 
 test:
 	go test ./... -v

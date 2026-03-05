@@ -9,7 +9,7 @@ before:
 
 builds:
   - id: sdcd
-    main: .
+    main: ./cmd/sdcd
     binary: sdcd
     env:
       - CGO_ENABLED=0
