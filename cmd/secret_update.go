@@ -14,7 +14,6 @@ import (
 var (
 	secretUpdateValue     string
 	secretUpdateAllowInPR bool
-	secretUpdateHasAllow  bool
 )
 
 var secretUpdateCmd = &cobra.Command{
