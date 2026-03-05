@@ -7,8 +7,8 @@ import (
 )
 
 var jobLatestCmd = &cobra.Command{
-	Use:   "latest <id>",
-	Short: "Get the latest build for a job",
+	Use:   "latest-build <id>",
+	Short: "View the latest build for a job",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := strconv.Atoi(args[0])
