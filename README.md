@@ -72,12 +72,12 @@ preferences:
 
 ```sh
 # Add a context
-sdcd auth context add production \
+sdcd context add production \
   --api-url https://api.screwdriver.example.com \
   --token <your-api-token>
 
 # Set it as default
-sdcd auth context use production
+sdcd context use production
 
 # List pipelines
 sdcd pipeline list
@@ -100,21 +100,21 @@ sdcd build logs 456 --step install
 | `--no-color` | Disable ANSI color output |
 | `--config <path>` | Path to config file |
 
-### `sdcd auth context`
+### `sdcd context`
 
 ```
-sdcd auth context add <name> --api-url <url> --token <token>
-sdcd auth context remove <name>
-sdcd auth context list
-sdcd auth context use <name>
-sdcd auth context current
+sdcd context add <name> --api-url <url> --token <token>
+sdcd context remove <name>
+sdcd context list
+sdcd context use <name>
+sdcd context current
 ```
 
 ### `sdcd pipeline`
 
 ```
 sdcd pipeline list [--search <str>] [--page N] [--count N]
-sdcd pipeline get <id>
+sdcd pipeline view <id>
 sdcd pipeline create --checkout-url <url> [--root-dir <dir>]
 sdcd pipeline delete <id> [--yes]
 sdcd pipeline sync <id>
@@ -127,17 +127,17 @@ sdcd pipeline start <id> [--job <name>] [--sha <sha>]
 ### `sdcd job`
 
 ```
-sdcd job get <id>
+sdcd job view <id>
 sdcd job enable <id>
 sdcd job disable <id>
 sdcd job builds <id>
-sdcd job latest <id>
+sdcd job latest-build <id>
 ```
 
 ### `sdcd build`
 
 ```
-sdcd build get <id>
+sdcd build view <id>
 sdcd build stop <id>
 sdcd build logs <id> --step <name>
 sdcd build steps <id>
@@ -147,7 +147,7 @@ sdcd build artifacts <id>
 ### `sdcd event`
 
 ```
-sdcd event get <id>
+sdcd event view <id>
 sdcd event builds <id>
 sdcd event stop <id>
 sdcd event rerun <id> [--job <name>]
@@ -175,6 +175,45 @@ echo 'eval "$(sdcd completion zsh)"' >> ~/.zshrc
 sdcd completion fish | source
 ```
 
+## Resource Hierarchy
+
+```
+Pipeline  (screwdriver.yaml definition)
+  ├─ Job    (named stage, e.g. "main", "deploy")
+  │    └─ Build  (each execution of that job)
+  └─ Event  (one run of the whole pipeline)
+       └─ Build  (one per job triggered in the event)
+                  └─ Step  (individual shell commands)
+```
+
+### Typical workflow
+
+```sh
+# 1. Find a pipeline
+sdcd pipeline list
+
+# 2. Start it
+sdcd pipeline start 123 --job main
+
+# 3. Check resulting event and its builds
+sdcd pipeline events 123
+sdcd event builds 456
+
+# 4. Inspect a build and stream its logs
+sdcd build view 789
+sdcd build logs 789 --step install
+```
+
+### How to get resource IDs
+
+| Resource | Command |
+|----------|---------|
+| Pipeline ID | `sdcd pipeline list` |
+| Job ID | `sdcd pipeline jobs <pipeline-id>` |
+| Event ID | `sdcd pipeline events <pipeline-id>` |
+| Build ID (by event) | `sdcd event builds <event-id>` |
+| Build ID (by job) | `sdcd job builds <job-id>` |
+
 ## Examples
 
 ```sh
@@ -186,7 +225,7 @@ sdcd pipeline list --output json | jq '.[].name'
 
 # Disable a job
 sdcd job disable 789
-sdcd job get 789   # verify state is DISABLED
+sdcd job view 789   # verify state is DISABLED
 
 # Rerun an event from a specific job
 sdcd event rerun 1234 --job deploy
