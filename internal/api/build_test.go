@@ -25,6 +25,54 @@ func TestGetBuild(t *testing.T) {
 	}
 }
 
+func TestStopBuild(t *testing.T) {
+	c := NewMockServer(t, map[string]http.Handler{
+		"/v4/builds/100": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPut {
+				http.Error(w, "wrong method", http.StatusMethodNotAllowed)
+				return
+			}
+			var body map[string]string
+			json.NewDecoder(r.Body).Decode(&body) //nolint:errcheck
+			if body["status"] != "ABORTED" {
+				http.Error(w, "wrong status", http.StatusBadRequest)
+				return
+			}
+			resp := model.Build{ID: 100, Status: "ABORTED"}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(resp) //nolint:errcheck
+		}),
+	})
+	result, err := c.StopBuild(100)
+	if err != nil {
+		t.Fatalf("StopBuild: %v", err)
+	}
+	if result.Status != "ABORTED" {
+		t.Errorf("expected ABORTED, got %q", result.Status)
+	}
+}
+
+func TestGetBuildSteps(t *testing.T) {
+	code := 0
+	steps := []model.Step{{Name: "install", Code: &code}, {Name: "test"}}
+	c := NewMockServer(t, map[string]http.Handler{
+		"/v4/builds/50/steps": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(steps) //nolint:errcheck
+		}),
+	})
+	result, err := c.GetBuildSteps(50)
+	if err != nil {
+		t.Fatalf("GetBuildSteps: %v", err)
+	}
+	if len(result) != 2 {
+		t.Errorf("expected 2 steps, got %d", len(result))
+	}
+	if result[0].Name != "install" {
+		t.Errorf("expected install, got %q", result[0].Name)
+	}
+}
+
 func TestGetBuildLogs(t *testing.T) {
 	logs := []model.LogLine{
 		{T: 1000, M: "hello", N: 0},
@@ -46,6 +94,25 @@ func TestGetBuildLogs(t *testing.T) {
 	}
 	if lp.NextPage != 0 {
 		t.Errorf("expected no next page, got %d", lp.NextPage)
+	}
+}
+
+func TestGetBuildLogs_WithNextPageHeader(t *testing.T) {
+	logs := []model.LogLine{{T: 1000, M: "line0", N: 0}}
+	c := NewMockServer(t, map[string]http.Handler{
+		"/v4/builds/5/steps/install/logs": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("X-More-Data", "true")
+			w.Header().Set("X-Next-Page", "2")
+			json.NewEncoder(w).Encode(logs) //nolint:errcheck
+		}),
+	})
+	lp, err := c.GetBuildLogs(5, "install", 0)
+	if err != nil {
+		t.Fatalf("GetBuildLogs: %v", err)
+	}
+	if lp.NextPage != 2 {
+		t.Errorf("expected NextPage=2, got %d", lp.NextPage)
 	}
 }
 
@@ -72,5 +139,25 @@ func TestGetAllBuildLogs_Pagination(t *testing.T) {
 	}
 	if len(lines) != 2 {
 		t.Errorf("expected 2 total lines, got %d", len(lines))
+	}
+}
+
+func TestGetBuildArtifacts(t *testing.T) {
+	artifacts := []string{"output.tar.gz", "report.html"}
+	c := NewMockServer(t, map[string]http.Handler{
+		"/v4/builds/20/artifacts": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(artifacts) //nolint:errcheck
+		}),
+	})
+	result, err := c.GetBuildArtifacts(20)
+	if err != nil {
+		t.Fatalf("GetBuildArtifacts: %v", err)
+	}
+	if len(result) != 2 {
+		t.Errorf("expected 2 artifacts, got %d", len(result))
+	}
+	if result[0] != "output.tar.gz" {
+		t.Errorf("unexpected artifact: %q", result[0])
 	}
 }
