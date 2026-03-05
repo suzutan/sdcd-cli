@@ -1,11 +1,8 @@
 # CLAUDE.md
 
-このファイルは Claude Code がこのリポジトリで作業する際のルールを定義する。
+このリポジトリで作業する際のルール。
 
-## プロジェクト概要
-
-`sdcd` — Screwdriver.cd 向けのマルチコンテキスト対応 CLI（Go製）。
-モジュール: `github.com/suzutan/sdcd-cli`
+Module: `github.com/suzutan/sdcd-cli`
 
 ## 開発サイクル
 
@@ -19,40 +16,44 @@
 ## 開発原則
 
 - **DRY / KISS / YAGNI** を守ること
-- フォールバックコードは書かない。使わないコードは後のノイズになる。必要になったら過去のコミットを遡れば良い
-- 将来の自分（Claude Code 含む）や他の人が見たときにコンテキストを理解できるコードを書く
+- フォールバックコードは書かない。必要になったら過去のコミットを遡れば良い
+- 将来の自分（Claude Code 含む）や他の人がコンテキストを理解できるコードを書く
 
-## ビルド・テスト
+## コマンド
 
 ```sh
-make build   # bin/sdcd を生成
+make build   # bin/sdcd を生成（ldflags でバージョン埋め込み）
 make test    # go test ./... -v
-make lint    # golangci-lint（要インストール）
+make lint    # golangci-lint run ./...
+make install # $GOPATH/bin にインストール
 ```
 
-## ディレクトリ構成
+## アーキテクチャ上の規約
 
-```
-cmd/                    # cobra コマンド定義（1ファイル1コマンド）
-internal/api/           # Screwdriver.cd API クライアント
-internal/config/        # 設定ファイルの読み書き
-internal/model/         # API レスポンス型定義
-internal/output/        # table / JSON / YAML 出力
-```
+### `cmd/` — コマンド定義
 
-## 設定ファイル
+- ファイル命名: `<resource>.go`（グループ登録のみ）と `<resource>_<action>.go`（実装）
+- `cfg *config.Config` と `client *api.Client` は `cmd` パッケージグローバル変数。`PersistentPreRunE` で初期化される。コマンド関数に引数として渡さない
+- 出力には必ず `printer()` を使う（`cmd/root.go` のファクトリ関数）
+- **新コマンドが API を使わない場合は `noClientNeeded()` に追加する**（`cmd/root.go:108`）。現在対象: `version`, `completion`, `help`, `auth` 配下すべて
 
-`$XDG_CONFIG_HOME/sdcd-cli/config.yaml`（デフォルト: `~/.config/sdcd-cli/config.yaml`）、パーミッション `0600`。
+### `internal/api/` — API クライアント
 
-## 認証
+- `client.go` の `do()` / `doWithHeaders()` を経由して全リクエストを送る。直接 `http.Client` を使わない
+- ログページネーション: `X-More-Data: true` ヘッダーで次ページあり。`X-Next-Page` があればその値、なければ `page+1` を使う
+- `model.LogLine.T` はミリ秒 Unix タイムスタンプ（秒ではない）
 
-raw API token を `GET /v4/auth/token?api_token=<token>` で JWT に交換。JWT はメモリのみでキャッシュし、ディスクには書かない。
+### `internal/config/`
+
+- 設定ファイルパーミッションは `0600`（`Save()` が強制）
+- `$XDG_CONFIG_HOME/sdcd-cli/config.yaml`、未設定時は `~/.config/sdcd-cli/config.yaml`
+
+### テスト
+
+- `internal/api` のテストは `NewMockServer(t, routes)` を使う（`internal/api/testutil.go`）
+- `internal/config` のテストは `TempConfig(t, cfg)` を使う（`internal/config/testutil.go`）
+- これらのヘルパーを再実装しないこと
 
 ## リリース
 
-`v*.*.*` タグを push すると GitHub Actions (`.github/workflows/release.yml`) が GoReleaser でクロスプラットフォームバイナリをビルドし、GitHub Release を自動作成する。
-
-```sh
-git tag v0.1.0
-git push origin v0.1.0
-```
+`v*.*.*` タグを push すると `.github/workflows/release.yml` が GoReleaser を実行し、GitHub Release を自動作成する。
