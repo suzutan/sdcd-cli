@@ -80,6 +80,10 @@ func TestGetBuildLogs(t *testing.T) {
 	}
 	c := NewMockServer(t, map[string]http.Handler{
 		"/v4/builds/5/steps/install/logs": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if got := r.URL.Query().Get("from"); got != "0" {
+				http.Error(w, "expected from=0, got "+got, http.StatusBadRequest)
+				return
+			}
 			// no X-More-Data header = no more pages
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(logs) //nolint:errcheck
@@ -101,6 +105,10 @@ func TestGetBuildLogs_WithNextPageHeader(t *testing.T) {
 	logs := []model.LogLine{{T: 1000, M: "line0", N: 0}}
 	c := NewMockServer(t, map[string]http.Handler{
 		"/v4/builds/5/steps/install/logs": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if got := r.URL.Query().Get("from"); got != "0" {
+				http.Error(w, "expected from=0, got "+got, http.StatusBadRequest)
+				return
+			}
 			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("X-More-Data", "true")
 			w.Header().Set("X-Next-Page", "2")
@@ -116,7 +124,27 @@ func TestGetBuildLogs_WithNextPageHeader(t *testing.T) {
 	}
 }
 
+func TestGetBuildLogs_DeriveNextFromLastLine(t *testing.T) {
+	// X-More-Data: true without X-Next-Page => NextPage derived from last line N+1
+	logs := []model.LogLine{{T: 1000, M: "line0", N: 4}}
+	c := NewMockServer(t, map[string]http.Handler{
+		"/v4/builds/5/steps/install/logs": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("X-More-Data", "true")
+			json.NewEncoder(w).Encode(logs) //nolint:errcheck
+		}),
+	})
+	lp, err := c.GetBuildLogs(5, "install", 0)
+	if err != nil {
+		t.Fatalf("GetBuildLogs: %v", err)
+	}
+	if lp.NextPage != 5 {
+		t.Errorf("expected NextPage=5 (last N=4, +1), got %d", lp.NextPage)
+	}
+}
+
 func TestGetAllBuildLogs_Pagination(t *testing.T) {
+	// first page: lines N=0, second page: lines N=1; no X-Next-Page so from is derived
 	page0 := []model.LogLine{{T: 1000, M: "line0", N: 0}}
 	page1 := []model.LogLine{{T: 2000, M: "line1", N: 1}}
 
@@ -124,10 +152,19 @@ func TestGetAllBuildLogs_Pagination(t *testing.T) {
 	c := NewMockServer(t, map[string]http.Handler{
 		"/v4/builds/7/steps/test/logs": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
+			from := r.URL.Query().Get("from")
 			if callCount == 0 {
+				if from != "0" {
+					http.Error(w, "first call: expected from=0, got "+from, http.StatusBadRequest)
+					return
+				}
 				callCount++
 				w.Header().Set("X-More-Data", "true")
 				json.NewEncoder(w).Encode(page0) //nolint:errcheck
+				return
+			}
+			if from != "1" {
+				http.Error(w, "second call: expected from=1, got "+from, http.StatusBadRequest)
 				return
 			}
 			json.NewEncoder(w).Encode(page1) //nolint:errcheck

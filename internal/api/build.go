@@ -23,9 +23,9 @@ func (c *Client) GetBuildSteps(id int) ([]model.Step, error) {
 	return result, c.get(fmt.Sprintf("/v4/builds/%d/steps", id), &result)
 }
 
-func (c *Client) GetBuildLogs(buildID int, stepName string, page int) (*model.LogPage, error) {
+func (c *Client) GetBuildLogs(buildID int, stepName string, from int) (*model.LogPage, error) {
 	q := url.Values{}
-	q.Set("page", strconv.Itoa(page))
+	q.Set("from", strconv.Itoa(from))
 	path := fmt.Sprintf("/v4/builds/%d/steps/%s/logs?%s", buildID, url.PathEscape(stepName), q.Encode())
 
 	var lines []model.LogLine
@@ -35,12 +35,11 @@ func (c *Client) GetBuildLogs(buildID int, stepName string, page int) (*model.Lo
 	}
 
 	lp := &model.LogPage{Lines: lines}
-	if nextStr := headers.Get("X-More-Data"); nextStr == "true" {
-		// Get next page from X-Total-Pages or derive
+	if headers.Get("X-More-Data") == "true" {
 		if pageStr := headers.Get("X-Next-Page"); pageStr != "" {
 			lp.NextPage, _ = strconv.Atoi(pageStr)
-		} else {
-			lp.NextPage = page + 1
+		} else if len(lines) > 0 {
+			lp.NextPage = lines[len(lines)-1].N + 1
 		}
 	}
 	return lp, nil
@@ -49,9 +48,9 @@ func (c *Client) GetBuildLogs(buildID int, stepName string, page int) (*model.Lo
 // GetAllBuildLogs fetches all log lines for a build step across pages.
 func (c *Client) GetAllBuildLogs(buildID int, stepName string) ([]model.LogLine, error) {
 	var all []model.LogLine
-	page := 1
+	from := 0
 	for {
-		lp, err := c.GetBuildLogs(buildID, stepName, page)
+		lp, err := c.GetBuildLogs(buildID, stepName, from)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +58,7 @@ func (c *Client) GetAllBuildLogs(buildID int, stepName string) ([]model.LogLine,
 		if lp.NextPage == 0 {
 			break
 		}
-		page = lp.NextPage
+		from = lp.NextPage
 	}
 	return all, nil
 }

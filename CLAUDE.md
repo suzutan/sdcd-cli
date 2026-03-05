@@ -40,7 +40,7 @@ make install # $GOPATH/bin にインストール
 ### `internal/api/` — API クライアント
 
 - `client.go` の `do()` / `doWithHeaders()` を経由して全リクエストを送る。直接 `http.Client` を使わない
-- ログページネーション: `X-More-Data: true` ヘッダーで次ページあり。`X-Next-Page` があればその値、なければ `page+1` を使う
+- ログページネーション: クエリパラメータは `from`（行番号オフセット、0始まり）。`X-More-Data: true` ヘッダーで次ページあり。`X-Next-Page` があればその値、なければレスポンスの最終行の `N+1` を使う
 - `model.LogLine.T` はミリ秒 Unix タイムスタンプ（秒ではない）
 
 ### `internal/config/`
