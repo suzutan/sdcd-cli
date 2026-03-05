@@ -112,7 +112,7 @@ func noClientNeeded(cmd *cobra.Command) bool {
 	}
 	c := cmd
 	for c != nil {
-		if c.Name() == "auth" {
+		if c.Name() == "context" {
 			return true
 		}
 		c = c.Parent()

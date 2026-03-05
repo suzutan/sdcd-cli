@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var authContextListCmd = &cobra.Command{
+var contextListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all contexts",
 	RunE: func(cmd *cobra.Command, args []string) error {

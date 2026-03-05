@@ -7,7 +7,7 @@ import (
 	"github.com/suzutan/sdcd-cli/internal/config"
 )
 
-var authContextUseCmd = &cobra.Command{
+var contextUseCmd = &cobra.Command{
 	Use:   "use <name>",
 	Short: "Switch to a context",
 	Args:  cobra.ExactArgs(1),

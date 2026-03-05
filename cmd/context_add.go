@@ -12,7 +12,7 @@ var (
 	addToken  string
 )
 
-var authContextAddCmd = &cobra.Command{
+var contextAddCmd = &cobra.Command{
 	Use:   "add <name>",
 	Short: "Add a new context",
 	Args:  cobra.ExactArgs(1),
@@ -36,8 +36,8 @@ var authContextAddCmd = &cobra.Command{
 }
 
 func init() {
-	authContextAddCmd.Flags().StringVar(&addAPIURL, "api-url", "", "API URL (required)")
-	authContextAddCmd.Flags().StringVar(&addToken, "token", "", "API token (required)")
-	_ = authContextAddCmd.MarkFlagRequired("api-url")
-	_ = authContextAddCmd.MarkFlagRequired("token")
+	contextAddCmd.Flags().StringVar(&addAPIURL, "api-url", "", "API URL (required)")
+	contextAddCmd.Flags().StringVar(&addToken, "token", "", "API token (required)")
+	_ = contextAddCmd.MarkFlagRequired("api-url")
+	_ = contextAddCmd.MarkFlagRequired("token")
 }

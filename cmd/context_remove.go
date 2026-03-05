@@ -7,7 +7,7 @@ import (
 	"github.com/suzutan/sdcd-cli/internal/config"
 )
 
-var authContextRemoveCmd = &cobra.Command{
+var contextRemoveCmd = &cobra.Command{
 	Use:   "remove <name>",
 	Short: "Remove a context",
 	Args:  cobra.ExactArgs(1),
