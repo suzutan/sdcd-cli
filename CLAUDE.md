@@ -11,7 +11,9 @@ Module: `github.com/suzutan/sdcd-cli`
 3. **1つ目のコミットを行った後は必ず PR を起票する**
    - `main` とブランチの差分を確認し、PR title・body を作成または更新する
    - PR body は `.github/pull_request_template.md` をベースに書くこと
-   - PR の CI job が成功することを確認する
+4. **CI job が成功したら PR をマージする**
+   - ユーザーからタスクを依頼されたら、コミット・push・PR 作成・マージまで一気に進める
+   - マージ後は `main` ブランチに戻る
 
 ## 開発原則
 
@@ -56,4 +58,18 @@ make install # $GOPATH/bin にインストール
 
 ## リリース
 
-`v*.*.*` タグを push すると `.github/workflows/release.yml` が GoReleaser を実行し、GitHub Release を自動作成する。
+バージョニングは **release-please** で自動化されている。
+
+```
+feat:/fix: コミットが main に積まれる
+  ↓
+release-please が Release PR を自動作成・更新
+（feat: → minor bump / fix: → patch bump / feat!: → major bump）
+  ↓
+Release PR をマージ
+  ↓
+git tag v*.*.* が自動付与 → GoReleaser が GitHub Release を作成
+```
+
+- コミットメッセージは必ず Conventional Commits 形式にする（release-please がバージョン決定に使用）
+- `.release-please-manifest.json` は release-please が自動管理するため **手動編集禁止**

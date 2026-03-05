@@ -1,0 +1,14 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "go",
+      "changelog-sections": [
+        {"type": "feat", "section": "New Features", "hidden": false},
+        {"type": "fix", "section": "Bug Fixes", "hidden": false},
+        {"type": "docs", "section": "Documentation", "hidden": true},
+        {"type": "chore", "section": "Miscellaneous", "hidden": true},
+        {"type": "ci", "section": "CI", "hidden": true}
+      ]
+    }
+  }
+}
