@@ -37,7 +37,7 @@ make install # $GOPATH/bin にインストール
 - ファイル命名: `<resource>.go`（グループ登録のみ）と `<resource>_<action>.go`（実装）
 - `cfg *config.Config` と `client *api.Client` は `cmd` パッケージグローバル変数。`PersistentPreRunE` で初期化される。コマンド関数に引数として渡さない
 - 出力には必ず `printer()` を使う（`cmd/root.go` のファクトリ関数）
-- **新コマンドが API を使わない場合は `noClientNeeded()` に追加する**（`cmd/root.go:108`）。現在対象: `version`, `completion`, `help`, `auth` 配下すべて
+- **新コマンドが API を使わない場合は `noClientNeeded()` に追加する**（`cmd/root.go`）。現在対象: `version`, `completion`, `help`, `context` 配下すべて
 
 ### `internal/api/` — API クライアント
 
@@ -66,10 +66,27 @@ feat:/fix: コミットが main に積まれる
 release-please が Release PR を自動作成・更新
 （feat: → minor bump / fix: → patch bump / feat!: → major bump）
   ↓
-Release PR をマージ
+Release PR をマージ  ← Claude Code が CI 通過後に自動でマージする
   ↓
 git tag v*.*.* が自動付与 → GoReleaser が GitHub Release を作成
 ```
 
 - コミットメッセージは必ず Conventional Commits 形式にする（release-please がバージョン決定に使用）
 - `.release-please-manifest.json` は release-please が自動管理するため **手動編集禁止**
+
+### Release PR のマージ手順
+
+タスクを完了して main に push した後、以下を実行する：
+
+```sh
+# release-please PR を探す（タイトルが "chore(main): release" で始まる）
+gh pr list --label "autorelease: pending" --json number,title,url
+
+# CI が全て通っているか確認
+gh pr checks <PR番号>
+
+# 通っていればマージ
+gh pr merge <PR番号> --merge
+```
+
+CI が失敗している場合はマージせず、原因を調査して修正する。
