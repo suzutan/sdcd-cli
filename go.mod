@@ -1,6 +1,6 @@
 module github.com/suzutan/sdcd-cli
 
-go 1.26.0
+go 1.24.0
 
 require (
 	github.com/jedib0t/go-pretty/v6 v6.6.5
