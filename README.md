@@ -1,5 +1,10 @@
 # sdcd
 
+[![CI](https://github.com/suzutan/sdcd-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/suzutan/sdcd-cli/actions/workflows/ci.yml)
+[![Release](https://github.com/suzutan/sdcd-cli/actions/workflows/release.yml/badge.svg)](https://github.com/suzutan/sdcd-cli/actions/workflows/release.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/suzutan/sdcd-cli)](https://goreportcard.com/report/github.com/suzutan/sdcd-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A command-line interface for [Screwdriver.cd](https://screwdriver.cd).
 
 Manage multiple Screwdriver.cd instances (production, staging, etc.) from a single CLI with a kubectl-style multi-context configuration.
