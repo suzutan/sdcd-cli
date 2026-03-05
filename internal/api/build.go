@@ -49,7 +49,7 @@ func (c *Client) GetBuildLogs(buildID int, stepName string, page int) (*model.Lo
 // GetAllBuildLogs fetches all log lines for a build step across pages.
 func (c *Client) GetAllBuildLogs(buildID int, stepName string) ([]model.LogLine, error) {
 	var all []model.LogLine
-	page := 0
+	page := 1
 	for {
 		lp, err := c.GetBuildLogs(buildID, stepName, page)
 		if err != nil {
