@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/suzutan/sdcd-cli/compare/v0.2.0...v0.3.0) (2026-03-05)
+
+
+### New Features
+
+* move main package to cmd/sdcd for clean go install path ([6e3a466](https://github.com/suzutan/sdcd-cli/commit/6e3a466c3495191b16f3e28a389af94212ce8cc3))
+* move main package to cmd/sdcd for clean go install path ([c6cdcb4](https://github.com/suzutan/sdcd-cli/commit/c6cdcb4fe773db12d7c95bcbed6c82e8cb135529))
+
 ## [0.2.0](https://github.com/suzutan/sdcd-cli/compare/v0.1.0...v0.2.0) (2026-03-05)
 
 
