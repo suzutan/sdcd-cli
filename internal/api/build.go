@@ -1,6 +1,8 @@
 package api
 
 import (
+	"archive/zip"
+	"bytes"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -64,6 +66,17 @@ func (c *Client) GetAllBuildLogs(buildID int, stepName string) ([]model.LogLine,
 }
 
 func (c *Client) GetBuildArtifacts(id int) ([]string, error) {
-	var result []string
-	return result, c.get(fmt.Sprintf("/v4/builds/%d/artifacts", id), &result)
+	data, err := c.getRaw(fmt.Sprintf("/v4/builds/%d/artifacts", id))
+	if err != nil {
+		return nil, err
+	}
+	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return nil, fmt.Errorf("parse artifacts zip: %w", err)
+	}
+	names := make([]string, len(zr.File))
+	for i, f := range zr.File {
+		names[i] = f.Name
+	}
+	return names, nil
 }
