@@ -9,7 +9,7 @@ var pipelineCmd = &cobra.Command{
 
 func init() {
 	pipelineCmd.AddCommand(pipelineListCmd)
-	pipelineCmd.AddCommand(pipelineGetCmd)
+	pipelineCmd.AddCommand(pipelineViewCmd)
 	pipelineCmd.AddCommand(pipelineCreateCmd)
 	pipelineCmd.AddCommand(pipelineDeleteCmd)
 	pipelineCmd.AddCommand(pipelineSyncCmd)

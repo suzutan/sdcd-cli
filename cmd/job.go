@@ -8,7 +8,7 @@ var jobCmd = &cobra.Command{
 }
 
 func init() {
-	jobCmd.AddCommand(jobGetCmd)
+	jobCmd.AddCommand(jobViewCmd)
 	jobCmd.AddCommand(jobEnableCmd)
 	jobCmd.AddCommand(jobDisableCmd)
 	jobCmd.AddCommand(jobBuildsCmd)

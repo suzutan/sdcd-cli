@@ -8,7 +8,7 @@ var eventCmd = &cobra.Command{
 }
 
 func init() {
-	eventCmd.AddCommand(eventGetCmd)
+	eventCmd.AddCommand(eventViewCmd)
 	eventCmd.AddCommand(eventBuildsCmd)
 	eventCmd.AddCommand(eventStopCmd)
 	eventCmd.AddCommand(eventRerunCmd)

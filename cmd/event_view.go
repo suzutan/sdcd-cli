@@ -6,9 +6,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var eventGetCmd = &cobra.Command{
-	Use:   "get <id>",
-	Short: "Get an event",
+var eventViewCmd = &cobra.Command{
+	Use:   "view <id>",
+	Short: "View an event",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := strconv.Atoi(args[0])
