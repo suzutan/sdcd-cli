@@ -192,6 +192,22 @@ func makeZip(files map[string]string) []byte {
 	return buf.Bytes()
 }
 
+func TestGetBuildArtifact(t *testing.T) {
+	c := NewMockServer(t, map[string]http.Handler{
+		"/v4/builds/20/artifacts/manifest.txt": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte("hello artifact")) //nolint:errcheck
+		}),
+	})
+	data, err := c.GetBuildArtifact(20, "./manifest.txt")
+	if err != nil {
+		t.Fatalf("GetBuildArtifact: %v", err)
+	}
+	if string(data) != "hello artifact" {
+		t.Errorf("unexpected content: %q", string(data))
+	}
+}
+
 func TestGetBuildArtifacts(t *testing.T) {
 	zipData := makeZip(map[string]string{
 		"./manifest.txt":    "hello",

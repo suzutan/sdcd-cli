@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/suzutan/sdcd-cli/internal/model"
 )
@@ -63,6 +64,13 @@ func (c *Client) GetAllBuildLogs(buildID int, stepName string) ([]model.LogLine,
 		from = lp.NextPage
 	}
 	return all, nil
+}
+
+// GetBuildArtifact fetches the raw content of a single artifact file.
+// name is the filename as returned by GetBuildArtifacts (e.g. "./manifest.txt").
+func (c *Client) GetBuildArtifact(buildID int, name string) ([]byte, error) {
+	name = strings.TrimPrefix(name, "./")
+	return c.getRaw(fmt.Sprintf("/v4/builds/%d/artifacts/%s", buildID, url.PathEscape(name)))
 }
 
 func (c *Client) GetBuildArtifacts(id int) ([]string, error) {

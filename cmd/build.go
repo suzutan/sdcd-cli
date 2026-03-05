@@ -13,5 +13,6 @@ func init() {
 	buildCmd.AddCommand(buildLogsCmd)
 	buildCmd.AddCommand(buildStepsCmd)
 	buildCmd.AddCommand(buildArtifactsCmd)
+	buildCmd.AddCommand(buildArtifactCmd)
 	rootCmd.AddCommand(buildCmd)
 }
