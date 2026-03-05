@@ -147,6 +147,28 @@ func (c *Client) get(path string, result interface{}) error {
 	return c.do(http.MethodGet, path, nil, result)
 }
 
+// getRaw performs an authenticated GET and returns the raw response body.
+func (c *Client) getRaw(path string) ([]byte, error) {
+	if err := c.authenticate(); err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("new request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+c.jwt)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("http do: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API error %d: %s", resp.StatusCode, string(body))
+	}
+	return io.ReadAll(resp.Body)
+}
+
 func (c *Client) post(path string, body, result interface{}) error {
 	return c.do(http.MethodPost, path, body, result)
 }

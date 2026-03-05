@@ -1,6 +1,8 @@
 package api
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -179,12 +181,26 @@ func TestGetAllBuildLogs_Pagination(t *testing.T) {
 	}
 }
 
+func makeZip(files map[string]string) []byte {
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	for name, content := range files {
+		w, _ := zw.Create(name)
+		w.Write([]byte(content)) //nolint:errcheck
+	}
+	zw.Close()
+	return buf.Bytes()
+}
+
 func TestGetBuildArtifacts(t *testing.T) {
-	artifacts := []string{"output.tar.gz", "report.html"}
+	zipData := makeZip(map[string]string{
+		"./manifest.txt":    "hello",
+		"./environment.json": "{}",
+	})
 	c := NewMockServer(t, map[string]http.Handler{
 		"/v4/builds/20/artifacts": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(artifacts) //nolint:errcheck
+			w.Header().Set("Content-Type", "application/zip")
+			w.Write(zipData) //nolint:errcheck
 		}),
 	})
 	result, err := c.GetBuildArtifacts(20)
@@ -193,8 +209,5 @@ func TestGetBuildArtifacts(t *testing.T) {
 	}
 	if len(result) != 2 {
 		t.Errorf("expected 2 artifacts, got %d", len(result))
-	}
-	if result[0] != "output.tar.gz" {
-		t.Errorf("unexpected artifact: %q", result[0])
 	}
 }
